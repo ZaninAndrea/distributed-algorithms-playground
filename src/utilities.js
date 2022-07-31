@@ -10,7 +10,7 @@ export function fullyConnectedEdges(nodes) {
             edges.push({
                 source: nodes[i].id,
                 target: nodes[j].id,
-                id: i + "-" + j,
+                id: getId(),
             })
         }
     }

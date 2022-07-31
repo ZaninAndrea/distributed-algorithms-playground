@@ -12,6 +12,9 @@ export default class Graph extends React.Component {
         offsetX: 0,
         offsetY: 0,
         activeTool: "pan",
+        sourceNode: null,
+        mouseX: 0,
+        mouseY: 0,
     }
 
     render() {
@@ -62,7 +65,12 @@ export default class Graph extends React.Component {
                                         ? "blue"
                                         : "black",
                             }}
-                            onClick={() => this.setState({ activeTool: "add" })}
+                            onClick={() =>
+                                this.setState({
+                                    activeTool: "add",
+                                    sourceNode: null,
+                                })
+                            }
                         >
                             <AddCircleIcon />
                         </IconButton>
@@ -91,6 +99,8 @@ export default class Graph extends React.Component {
                         onMouseUp={(e) => {
                             if (this.state.draggingNode !== null) {
                                 this.setState({ draggingNode: null })
+                            } else if (this.state.sourceNode !== null) {
+                                this.setState({ sourceNode: null })
                             }
                         }}
                         onMouseMove={(e) => {
@@ -117,6 +127,12 @@ export default class Graph extends React.Component {
                                           }
                                 )
                                 this.props.onNodesChange(newNodes)
+                            } else if (this.state.sourceNode !== null) {
+                                const rect =
+                                    this.container.getBoundingClientRect()
+                                const mouseX = e.clientX - rect.x
+                                const mouseY = e.clientY - rect.y
+                                this.setState({ mouseX, mouseY })
                             }
                         }}
                     >
@@ -164,6 +180,35 @@ export default class Graph extends React.Component {
                                                 "delete"
                                             ) {
                                                 this.props.deleteNode(node.id)
+                                            } else if (
+                                                this.state.activeTool === "add"
+                                            ) {
+                                                const rect =
+                                                    this.container.getBoundingClientRect()
+                                                const mouseX =
+                                                    e.clientX - rect.x
+                                                const mouseY =
+                                                    e.clientY - rect.y
+                                                this.setState({
+                                                    sourceNode: node.id,
+                                                    mouseX,
+                                                    mouseY,
+                                                })
+                                            }
+                                        }
+                                    }}
+                                    onMouseUp={(e) => {
+                                        if (e.button === 0) {
+                                            if (
+                                                this.state.sourceNode !==
+                                                    null &&
+                                                this.state.sourceNode !==
+                                                    node.id
+                                            ) {
+                                                this.props.addEdge(
+                                                    this.state.sourceNode,
+                                                    node.id
+                                                )
                                             }
                                         }
                                     }}
@@ -191,6 +236,17 @@ export default class Graph extends React.Component {
                             </div>
                         ))}
                         <svg className="graph-svg">
+                            {this.state.sourceNode !== null && (
+                                <line
+                                    x1={nodeMap[this.state.sourceNode].x}
+                                    y1={nodeMap[this.state.sourceNode].y}
+                                    x2={this.state.mouseX}
+                                    y2={this.state.mouseY}
+                                    stroke="black"
+                                    strokeWidth="2px"
+                                    key={"drag-line"}
+                                />
+                            )}
                             {this.props.edges.map((edge) => (
                                 <>
                                     <line

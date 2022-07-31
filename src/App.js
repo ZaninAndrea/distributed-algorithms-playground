@@ -202,6 +202,28 @@ class App extends React.Component {
                             }
                         })
                     }
+                    addEdge={(source, target) => {
+                        const edgeExists =
+                            this.state.edges.filter(
+                                (e) =>
+                                    e.source === source && e.target === target
+                            ).length > 0
+
+                        if (!edgeExists) {
+                            this.setState(({ edges }) => {
+                                return {
+                                    edges: [
+                                        ...edges,
+                                        {
+                                            source,
+                                            target,
+                                            id: getId(),
+                                        },
+                                    ],
+                                }
+                            })
+                        }
+                    }}
                     playing={this.state.playing}
                     onTogglePlaying={() => {
                         this.setState(
